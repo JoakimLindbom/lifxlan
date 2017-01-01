@@ -88,6 +88,20 @@ class Light(Device):
             print(e)
         return self.color
 
+    def set_HSB(self, hue, saturation, brightness, duration=0, rapid=False):
+        """ Set colour according to HSV scheme
+            hue, saturation, brightness: 0-65535
+            duration in ms"""
+        color = self.get_color()
+        color2 = (hue, saturation, brightness, color[3])
+        try:
+            if rapid:
+                self.fire_and_forget(LightSetColor, {"color": color2, "duration": duration}, num_repeats=5)
+            else:
+                self.req_with_ack(LightSetColor, {"color": color2, "duration": duration})
+        except WorkflowException as e:
+                print(e)
+
     def set_hue(self, hue, duration=0, rapid=False):
         """ hue to set
             duration in ms"""
@@ -128,10 +142,11 @@ class Light(Device):
             print(e)
 
     def set_colortemp(self, kelvin, duration=0, rapid=False):
-        """ kelvin: color temperature to set
+        """ kelvin: color temperature to set 2500-9000
             duration in ms"""
         color = self.get_color()
-        color2 = (color[0], color[1], color[2], kelvin)
+        color2 = (color[0], color[1], color[2], kelvin if kelvin>=2500 and kelvin <= 9000
+                                                       else 2500 if kelvin < 2500 else 9000)
         try:
             if rapid:
                 self.fire_and_forget(LightSetColor, {"color": color2, "duration": duration}, num_repeats=5)
