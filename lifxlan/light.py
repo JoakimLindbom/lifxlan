@@ -3,6 +3,7 @@
 
 from device import Device, WorkflowException
 from msgtypes import *
+import colorsys
 
 RED = [65535, 65535, 65535, 3500]
 ORANGE = [5525, 65535, 65535, 3500]
@@ -101,6 +102,28 @@ class Light(Device):
                 self.req_with_ack(LightSetColor, {"color": color2, "duration": duration})
         except WorkflowException as e:
                 print(e)
+
+    def set_RGB(self, red, green, blue, duration=0, rapid=False):
+        """ Set colour according to RGB scheme
+            red, green, blue: 0-255
+            duration in ms"""
+        color = self.get_color()
+
+        h, s, b = colorsys.rgb_to_hsv(red/255.0, green/255.0, blue/255.0)
+
+        hue = int(round(h * 65535.0, 0))
+        saturation = int(round(s * 65535.0, 0))
+        brightness = int(round(b * 65535.0, 0))
+
+        color2 = (hue, saturation, brightness, color[3])
+        try:
+            if rapid:
+                self.fire_and_forget(LightSetColor, {"color": color2, "duration": duration}, num_repeats=5)
+            else:
+                self.req_with_ack(LightSetColor, {"color": color2, "duration": duration})
+        except WorkflowException as e:
+                print(e)
+
 
     def set_hue(self, hue, duration=0, rapid=False):
         """ hue to set
